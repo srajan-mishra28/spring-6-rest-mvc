@@ -1,5 +1,6 @@
 package guru.springframework.spring6restmvc.services;
 
+import guru.springframework.spring6restmvc.entities.Customer;
 import guru.springframework.spring6restmvc.mappers.CustomerMapper;
 import guru.springframework.spring6restmvc.model.CustomerDTO;
 import guru.springframework.spring6restmvc.repositories.CustomerRepository;
@@ -37,17 +38,33 @@ public class CustomerServiceJPA implements CustomerService {
 
     @Override
     public CustomerDTO saveNewCustomer(CustomerDTO customer) {
-        return null;
+        return customerMapper.customerToCustomerDto(customerRepository.save(customerMapper.customerDtoToCustomer(customer)));
     }
 
     @Override
-    public void updateCustomerById(UUID customerId, CustomerDTO customer) {
-
+    public Optional<CustomerDTO> updateCustomerById(UUID customerId, CustomerDTO customer) {
+        Optional<Customer> foundCustomer = customerRepository.findById(customerId);
+        if(foundCustomer.isEmpty()){
+            return Optional.empty();
+        }else {
+            Customer c = foundCustomer.get();
+//            c.setId(customer.getId());
+            c.setName(customer.getName());
+            c.setVersion(customer.getVersion());
+            c.setUpdateDate(customer.getUpdateDate());
+            c.setCreatedDate(customer.getCreatedDate());
+            customerRepository.save(c);
+            return Optional.of(customerMapper.customerToCustomerDto(c));
+        }
     }
 
     @Override
-    public void deleteCustomerById(UUID customerId) {
-
+    public boolean deleteCustomerById(UUID customerId) {
+        if (customerRepository.existsById(customerId)) {
+            customerRepository.deleteById(customerId);
+            return true;
+        }
+        return false;
     }
 
     @Override
